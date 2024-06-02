@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-api
+  labels:
+    app: tasks-api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: tasks-api
+  template:
+    metadata:
+      labels:
+        app: tasks-api
+    spec:
+      containers:
+        - name: tasks-api
+          image: "{{ .Values.tasksApi.image.repository }}:{{ .Values.tasksApi.image.tag }}"
+          imagePullPolicy: {{ .Values.tasksApi.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.tasksApi.service.port }}
+          resources:
+            requests:
+              cpu: "{{ .Values.tasksApi.resources.requests.cpu }}"
+            limits:
+              cpu: "{{ .Values.tasksApi.resources.limits.cpu }}"
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: LOG_LEVEL
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: DB_PORT
